@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BLE_Guitar_Tutor</string>
+
+    <!-- BLE 관련 문자열 리소스 -->
+    <string name="ble_denied_info">If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]"</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="please_wait">Please Wait...</string>
+</resources>
