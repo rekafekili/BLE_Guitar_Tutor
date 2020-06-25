@@ -26,14 +26,12 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     private static final int REQUEST_ENABLE_BT = 5005;
 
     private BluetoothAdapter bluetoothAdapter;
-    private BleManager bleManager;
+    protected BleManager bleManager;
     private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
         checkBluetoothActive();
     }
 
@@ -82,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
     @Override
     public void onPermissionGranted() {
         handler = new Handler();
-        bleManager = new BleManager(this, handler, bluetoothAdapter,findViewById(R.id.main_progressbar));
+        bleManager = new BleManager(this, handler, bluetoothAdapter);
     }
 
     @Override

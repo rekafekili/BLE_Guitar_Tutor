@@ -1,9 +1,7 @@
 package com.example.ble_guitar_tutor;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -11,7 +9,6 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -19,15 +16,9 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
-
-import androidx.annotation.RequiresApi;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -43,19 +34,18 @@ public class BleManager {
     /* Constant */
     private final String TAG = "BleManager";
     private static final long SCAN_PERIOD = 1000;  // 스캔 제한 시간
-    private static final UUID SERVICE_UUID = UUID.fromString("19B10000-E8F2-537E-4F6C-D104768A1214");
-    private static final UUID CHARACTERISTIC_UUID = UUID.fromString("19B10001-E8F2-537E-4F6C-D104768A1214");
-    private static final UUID DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+    private static final UUID SERVICE_UUID = UUID.fromString("19B10000-E8F2-537E-4F6C-D104768A1214"); // BLE Service UUID
+    private static final UUID CHARACTERISTIC_UUID = UUID.fromString("19B10001-E8F2-537E-4F6C-D104768A1214"); // BLE Characteristic UUID
+    private static final UUID DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); // BLE Descriptor UUID
 
     /* BLE Scan Field */
     private BluetoothAdapter mBluetoothAdapter;
     private Handler mHandler;
-    private Activity mActivity;
+    private Context mContext;
     private boolean mScanning = false;
     private HashMap<String, BluetoothDevice> mScanResults;
     private BleScanCallback mScanCallback;
     private BluetoothLeScanner mBluetoothScanner;
-    private View mProgressView;
 
     /* BLE Connect Field*/
     private BluetoothGatt mGatt;
@@ -72,8 +62,9 @@ public class BleManager {
     public void setDeliverable(Deliverable deliverable) {
         this.deliverable = deliverable;
     }
-    public boolean ismConnected() {
-        return mConnected;
+
+    public boolean isConnected() {
+        return  mConnected;
     }
 
     /**
@@ -81,11 +72,10 @@ public class BleManager {
      * 1. 현재 안드로이드 기기가 BLE 지원이 되는지 확인
      * 2. BluetoothAdapter 획득
      */
-    public BleManager(Activity activity, Handler handler, BluetoothAdapter bluetoothAdapter, View progressView) {
-        mActivity = activity;
+    public BleManager(Context context, Handler handler, BluetoothAdapter bluetoothAdapter) {
+        mContext = context;
         mHandler = handler;
         mBluetoothAdapter = bluetoothAdapter;
-        mProgressView = progressView;
 
         Log.d(TAG, "Created BleManager");
     }
@@ -100,9 +90,8 @@ public class BleManager {
         if (mScanning) {
             return;
         }
-        mProgressView.setVisibility(View.VISIBLE);
 
-        Log.d(TAG, "Scan Start");
+        Toast.makeText(mContext, "BLE Scan Start", Toast.LENGTH_SHORT).show();
 
         List<ScanFilter> filters = new ArrayList<>();
 
@@ -122,8 +111,7 @@ public class BleManager {
      * 스캔을 종료하고 Scan 에 사용된 필드값들을 초기화
      */
     private void stopScan() {
-        Log.d(TAG, "Scan Stop");
-        mProgressView.setVisibility(View.GONE);
+        Toast.makeText(mContext, "BLE Scan Stop", Toast.LENGTH_SHORT).show();
 
         if (mScanning && mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mBluetoothScanner != null) {
             mBluetoothScanner.stopScan(mScanCallback);
@@ -140,7 +128,7 @@ public class BleManager {
     private void scanComplete() {
         Log.d(TAG, "Scan Complete");
         if (mScanResults.isEmpty()) {
-            Toast.makeText(mActivity, "No BLE Device", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "No BLE Device", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -188,9 +176,10 @@ public class BleManager {
     public void connectDevice(BluetoothDevice device) {
         Log.d(TAG, "Device Name : " + device.getName());
         Log.d(TAG, "Device UUID : " + Arrays.toString(device.getUuids()));
+        Toast.makeText(mContext, "BLE Device Connected" + device.getName(), Toast.LENGTH_SHORT).show();
 
         GattClientCallback gattClientCallback = new GattClientCallback();
-        mGatt = device.connectGatt(mActivity, false, gattClientCallback);
+        mGatt = device.connectGatt(mContext, false, gattClientCallback);
     }
 
     /**
@@ -225,6 +214,7 @@ public class BleManager {
                 mConnected = true;
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Toast.makeText(mContext, "블루투스 연결이 끊겼습니다.", Toast.LENGTH_SHORT).show();
                 disconnectGattServer();
             }
 
@@ -243,10 +233,12 @@ public class BleManager {
             BluetoothGattService service = gatt.getService(SERVICE_UUID);
             BluetoothGattCharacteristic characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
 
+            // Write 에 사용할 Characteristic 설정
             characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             mInitialized = gatt.setCharacteristicNotification(characteristic, true);
             Log.d(TAG, "GATT Initialized : " + mInitialized);
 
+            // Characteristic 을 구독하는 Descriptor 설정
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(DESCRIPTOR_UUID);
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             boolean descriptorInitialized = mGatt.writeDescriptor(descriptor);
@@ -255,7 +247,7 @@ public class BleManager {
             if (mInitialized && descriptorInitialized) {
                 mHandler.post(() -> {
                     writeCharacteristic("O");
-                    Toast.makeText(mActivity, "블루투스 기기와 연결되었습니다.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "블루투스 기기와 연결되었습니다.", Toast.LENGTH_SHORT).show();
                 });
             }
         }
@@ -301,7 +293,7 @@ public class BleManager {
      */
     public void writeCharacteristic(String message) {
         if (!mConnected || !mInitialized) {
-            Toast.makeText(mActivity, "BLE NOT CONNECTED!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "BLE NOT CONNECTED!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -313,11 +305,11 @@ public class BleManager {
         Log.d(TAG, "writeCharacteristic: " + message);
 
         if (mGatt.writeCharacteristic(characteristic)) {
-         }
+        }
     }
 
-    public void showScanResults(ArrayList<BluetoothDevice> deviceList) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+    private void showScanResults(ArrayList<BluetoothDevice> deviceList) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
         ArrayList<String> deviceNameAddressList = new ArrayList<>();
         for (BluetoothDevice tmpDevice : deviceList) {
