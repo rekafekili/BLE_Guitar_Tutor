@@ -1,14 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:id="@+id/main_ble_test_send1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/test_string_1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        <Button
+            android:id="@+id/main_ble_send_button1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="SEND"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:id="@+id/main_ble_test_send2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/test_string_2"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        <Button
+            android:id="@+id/main_ble_send_button2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="SEND"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:id="@+id/main_ble_test_send3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/test_string_3"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        <Button
+            android:id="@+id/main_ble_send_button3"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="SEND"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:id="@+id/main_ble_test_send4"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/test_string_4"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        <Button
+            android:id="@+id/main_ble_send_button4"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="SEND"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:id="@+id/main_ble_test_send5"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/test_string_5"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        <Button
+            android:id="@+id/main_ble_send_button5"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="SEND"/>
+    </LinearLayout>
 
     <include
         android:id="@+id/main_progressbar"
-        android:visibility="gone"
-        layout="@layout/progressbar"/>
+        layout="@layout/progressbar"
+        android:visibility="gone" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

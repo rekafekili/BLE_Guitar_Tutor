@@ -5,4 +5,11 @@
     <string name="ble_denied_info">If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]"</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="please_wait">Please Wait...</string>
+
+    <!-- BLE String Communication Test Strings -->
+    <string name="test_string_1">가나다라마바사아자차카타파하(14 Chars)</string>
+    <string name="test_string_2">가나다라마바사아자차카타파하가나다라마바사아자차카타파하(28 Chars)</string>
+    <string name="test_string_3">가나다라마바사아자차카타파하가나다라마바사아자차카타파하가나다라마바사아자차카타파하(42 Chars)</string>
+    <string name="test_string_4">가나다라마바사아자차카타파하가나다라마바사아자차카타파하가나다라마바사아자차카타파하가나다라마바사아자차카타파하(56 Chars)</string>
+    <string name="test_string_5">가나다라마바사아자차카타파하가나다라마바사아자차카타파하가나다라마바사아자차카타파하가나다라마바사아자차카타파하가나다라마바사아자차카타파하(70 Chars)</string>
 </resources>
