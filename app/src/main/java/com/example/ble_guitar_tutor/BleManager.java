@@ -176,7 +176,7 @@ public class BleManager {
     public void connectDevice(BluetoothDevice device) {
         Log.d(TAG, "Device Name : " + device.getName());
         Log.d(TAG, "Device UUID : " + Arrays.toString(device.getUuids()));
-        Toast.makeText(mContext, "BLE Device Connected" + device.getName(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, "BLE Device Connected : " + device.getName(), Toast.LENGTH_SHORT).show();
 
         GattClientCallback gattClientCallback = new GattClientCallback();
         mGatt = device.connectGatt(mContext, false, gattClientCallback);

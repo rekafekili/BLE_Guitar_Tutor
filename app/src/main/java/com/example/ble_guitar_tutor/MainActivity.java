@@ -14,6 +14,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.gun0912.tedpermission.PermissionListener;
@@ -21,7 +23,7 @@ import com.gun0912.tedpermission.TedPermission;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements PermissionListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static final String TAG = "MainActivityTag";
     private static final int REQUEST_ENABLE_BT = 5005;
 
@@ -34,8 +36,42 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkBluetoothActive();
+
+        Button button1 = findViewById(R.id.main_ble_send_button1);
+        Button button2 = findViewById(R.id.main_ble_send_button2);
+        Button button3 = findViewById(R.id.main_ble_send_button3);
+        Button button4 = findViewById(R.id.main_ble_send_button4);
+        Button button5 = findViewById(R.id.main_ble_send_button5);
+
+        button1.setOnClickListener(this);
+        button2.setOnClickListener(this);
+        button3.setOnClickListener(this);
+        button4.setOnClickListener(this);
+        button5.setOnClickListener(this);
     }
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.main_ble_send_button1 :
+                bleManager.writeCharacteristic(getResources().getString(R.string.test_string_1));
+                break;
+            case R.id.main_ble_send_button2 :
+                bleManager.writeCharacteristic(getResources().getString(R.string.test_string_2));
+                break;
+            case R.id.main_ble_send_button3 :
+                bleManager.writeCharacteristic(getResources().getString(R.string.test_string_3));
+                break;
+            case R.id.main_ble_send_button4 :
+                bleManager.writeCharacteristic(getResources().getString(R.string.test_string_4));
+                break;
+            case R.id.main_ble_send_button5 :
+                bleManager.writeCharacteristic(getResources().getString(R.string.test_string_5));
+                break;
+        }
+    }
+
+    /* ******************** BLE 권한 승인 관련 코드 ******************** */
     private void checkBluetoothActive() {
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
@@ -72,21 +108,21 @@ public class MainActivity extends AppCompatActivity implements PermissionListene
 
     private void checkPermission() {
         TedPermission.with(this)
-                .setPermissionListener(this)
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        handler = new Handler();
+                        bleManager = new BleManager(MainActivity.this, handler, bluetoothAdapter);
+                    }
+
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                })
                 .setDeniedMessage(R.string.ble_denied_info)
                 .setPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
                 .check();
-    }
-
-    @Override
-    public void onPermissionGranted() {
-        handler = new Handler();
-        bleManager = new BleManager(this, handler, bluetoothAdapter);
-    }
-
-    @Override
-    public void onPermissionDenied(List<String> deniedPermissions) {
-        Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
