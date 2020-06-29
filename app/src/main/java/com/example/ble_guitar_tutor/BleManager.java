@@ -36,7 +36,7 @@ public class BleManager {
     private static final UUID SERVICE_UUID = UUID.fromString("19B10000-E8F2-537E-4F6C-D104768A1214"); // BLE Service UUID
     private static final UUID CHARACTERISTIC_UUID = UUID.fromString("19B10001-E8F2-537E-4F6C-D104768A1214"); // BLE Characteristic UUID
     private static final UUID DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); // BLE Descriptor UUID
-    private final int MAX_LENGTH = 30; // BLE 기기의 StringCharacteristic 최대 길이
+    private final int MAX_LENGTH = 300; // BLE 기기의 StringCharacteristic 최대 길이
 
     /* BLE Scan Field */
     private BluetoothAdapter mBluetoothAdapter;
