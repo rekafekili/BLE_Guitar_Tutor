@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -16,7 +16,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/test_string_1"
+            android:text="300"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
         <Button
             android:id="@+id/main_ble_send_button1"
@@ -34,7 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/test_string_2"
+            android:text="600"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
         <Button
             android:id="@+id/main_ble_send_button2"
@@ -52,7 +52,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/test_string_3"
+            android:text="900"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
         <Button
             android:id="@+id/main_ble_send_button3"
@@ -70,7 +70,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/test_string_4"
+            android:text="1200"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
         <Button
             android:id="@+id/main_ble_send_button4"
@@ -88,7 +88,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/test_string_5"
+            android:text="3155"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
         <Button
             android:id="@+id/main_ble_send_button5"

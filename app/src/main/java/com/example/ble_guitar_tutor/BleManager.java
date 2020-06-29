@@ -1,6 +1,5 @@
 package com.example.ble_guitar_tutor;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -37,6 +36,7 @@ public class BleManager {
     private static final UUID SERVICE_UUID = UUID.fromString("19B10000-E8F2-537E-4F6C-D104768A1214"); // BLE Service UUID
     private static final UUID CHARACTERISTIC_UUID = UUID.fromString("19B10001-E8F2-537E-4F6C-D104768A1214"); // BLE Characteristic UUID
     private static final UUID DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); // BLE Descriptor UUID
+    private final int MAX_LENGTH = 30; // BLE 기기의 StringCharacteristic 최대 길이
 
     /* BLE Scan Field */
     private BluetoothAdapter mBluetoothAdapter;
@@ -51,9 +51,14 @@ public class BleManager {
     private BluetoothGatt mGatt;
     private boolean mConnected = false;
     private boolean mInitialized = false;
+    // "writeCharacteristic()"을 통해 데이터를 보내면 onChanged()가 onWrite()보다 먼저 호출되는 경우를 방지
+    private boolean mBeforeWrite = true;
+    private String mSendMessage = "";
 
     /* Callback to transfer BLE Characteristic data */
     private Deliverable deliverable = null;
+    private BluetoothGattService service;
+    private BluetoothGattCharacteristic characteristic;
 
     public interface Deliverable {
         void onReceiveCharacteristicChanged(String data);
@@ -186,8 +191,9 @@ public class BleManager {
      * GATT 통신에 필요한 콜백 메소드 구현
      */
     private class GattClientCallback extends BluetoothGattCallback {
+
         /**
-         * GATT 통신 상태가 변경될 때 호출되는 콜백 메소드1
+         * GATT 통신 상태가 변경될 때 호출되는 콜백 메소드
          *
          * @param gatt     GATT
          * @param status   기존의 연결 상태
@@ -230,8 +236,8 @@ public class BleManager {
                 return;
             }
 
-            BluetoothGattService service = gatt.getService(SERVICE_UUID);
-            BluetoothGattCharacteristic characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
+            service = gatt.getService(SERVICE_UUID);
+            characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
 
             // Write 에 사용할 Characteristic 설정
             characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
@@ -245,17 +251,17 @@ public class BleManager {
             Log.d(TAG, "Descriptor Initialized : " + descriptorInitialized);
 
             if (mInitialized && descriptorInitialized) {
-                mHandler.post(() -> {
-                    writeCharacteristic("O");
-                    Toast.makeText(mContext, "블루투스 기기와 연결되었습니다.", Toast.LENGTH_SHORT).show();
-                });
+                mHandler.post(() -> Toast.makeText(mContext, "블루투스 기기와 연결되었습니다.", Toast.LENGTH_SHORT).show());
             }
         }
 
         // Characteristic을 Write 하면 호출되는 콜백 메소드
+        // 한글은 지원하지 않음(write 가능하지만, 반대편에서 읽지 못함)
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
+
+            mBeforeWrite = false;
 
             String characteristicStringValue = characteristic.getStringValue(0);
             Log.d(TAG, "onWrite : " + characteristicStringValue);
@@ -265,8 +271,18 @@ public class BleManager {
         // 반드시 Descriptor를 설정 해줘야함!
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            if(mBeforeWrite) {
+                return;
+            }
             super.onCharacteristicChanged(gatt, characteristic);
-            Log.d(TAG, "onChanged : " + characteristic.getStringValue(0));
+
+            String receivedValue = characteristic.getStringValue(0);
+            Log.d(TAG, "onChanged : " + receivedValue);
+            mBeforeWrite = true;
+
+            if(receivedValue.equals("") && !mSendMessage.isEmpty()) {
+                writeCharacteristic(mSendMessage);
+            }
 
             if (deliverable != null) {
                 deliverable.onReceiveCharacteristicChanged(characteristic.getStringValue(0));
@@ -283,6 +299,8 @@ public class BleManager {
                 mGatt.disconnect();
                 mGatt.close();
             }
+
+            Log.d(TAG, "disconnectGattServer: Disconnected");
         }
     }
 
@@ -297,15 +315,24 @@ public class BleManager {
             return;
         }
 
-        BluetoothGattService service = mGatt.getService(SERVICE_UUID);
-        BluetoothGattCharacteristic characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
+        if(mSendMessage.isEmpty()) {
+            mSendMessage = message + "$";
+        }
+
+//        BluetoothGattService service = mGatt.getService(SERVICE_UUID);
+//        BluetoothGattCharacteristic characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
+
+        if(mSendMessage.length() > MAX_LENGTH) {
+            message = mSendMessage.substring(0, MAX_LENGTH);
+            mSendMessage = mSendMessage.substring(MAX_LENGTH);
+        } else {
+            message = mSendMessage;
+            mSendMessage = "";
+        }
 
         byte[] messageBytes = (message).getBytes(StandardCharsets.UTF_8);
         characteristic.setValue(messageBytes);
-        Log.d(TAG, "writeCharacteristic: " + message);
-
-        if (mGatt.writeCharacteristic(characteristic)) {
-        }
+        Log.d(TAG, "writeCharacteristic: " + message + " >> " + mGatt.writeCharacteristic(characteristic));
     }
 
     private void showScanResults(ArrayList<BluetoothDevice> deviceList) {
