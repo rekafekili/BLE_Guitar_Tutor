@@ -51,8 +51,7 @@ public class BleManager {
     private BluetoothGatt mGatt;
     private boolean mConnected = false;
     private boolean mInitialized = false;
-    // "writeCharacteristic()"을 통해 데이터를 보내면 onChanged()가 onWrite()보다 먼저 호출되는 경우를 방지
-    private boolean mBeforeWrite = true;
+    private boolean mBeforeWrite = true; // "writeCharacteristic()"을 통해 데이터를 보내면 onChanged()가 onWrite()보다 먼저 호출되는 경우를 방지
     private String mSendMessage = "";
 
     /* Callback to transfer BLE Characteristic data */
@@ -60,6 +59,9 @@ public class BleManager {
     private BluetoothGattService service;
     private BluetoothGattCharacteristic characteristic;
 
+    /**
+     * BLE Device로부터 받은 데이터를 외부 클래스에서 전달 받을 수 있도록 콜백 메소드를 정의한 인터페이스
+     */
     public interface Deliverable {
         void onReceiveCharacteristicChanged(String data);
     }
@@ -68,6 +70,11 @@ public class BleManager {
         this.deliverable = deliverable;
     }
 
+    /**
+     * BLE 연결 상태를 반환하는 메소드
+     *
+     * @return BLE 연결 상태
+     */
     public boolean isConnected() {
         return  mConnected;
     }
@@ -218,7 +225,7 @@ public class BleManager {
             // We Must DISCOVER the services of the GATT Server
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mConnected = true;
-                gatt.discoverServices();
+                gatt.discoverServices(); // onServicesDiscovered 콜백 메소드로 넘어감.
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Toast.makeText(mContext, "블루투스 연결이 끊겼습니다.", Toast.LENGTH_SHORT).show();
                 disconnectGattServer();
@@ -227,8 +234,13 @@ public class BleManager {
             Log.d(TAG, "Connected with GattServer");
         }
 
-        // 연결된 Device가 가지고 있는 GATT에서 Service 정보를 얻는 메소드
-        // Service 획득 -> Service 안에 Characteristic 참조 + Characteristic을 구독하는 Descriptor 생성
+        /**
+         * 연결된 Device가 가지고 있는 GATT에서 Service 정보를 얻는 메소드
+         * Service 획득 -> Service 안에 Characteristic 참조 + Characteristic을 구독하는 Descriptor 생성
+         *
+         * @param gatt 연결된 Device의 GATT
+         * @param status 연결 상태
+         */
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
@@ -255,8 +267,15 @@ public class BleManager {
             }
         }
 
-        // Characteristic을 Write 하면 호출되는 콜백 메소드
-        // 한글은 지원하지 않음(write 가능하지만, 반대편에서 읽지 못함)
+        /**
+         * Characteristic을 Write 하면 호출되는 콜백 메소드
+         * 한글은 지원하지 않음(write 가능하지만, 반대편에서 읽지 못함)
+         * CharacteristicWrite와 Changed가 거의 동시에 일어나면 혼선이 일어나는 것 같음.
+         *
+         * @param gatt 연결된 Device의 GATT
+         * @param characteristic 연결된 Device와 공유하는 Characteristic
+         * @param status 연결 상태
+         */
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
@@ -267,8 +286,13 @@ public class BleManager {
             Log.d(TAG, "onWrite : " + characteristicStringValue);
         }
 
-        // Characteristic의 값이 변경되면 호출되는 메소드
-        // 반드시 Descriptor를 설정 해줘야함!
+        /**
+         * Characteristic의 값이 변경되면 호출되는 메소드
+         * 반드시 "Descriptor"를 설정 해줘야함! (onServicesDiscovered 참고)
+         *
+         * @param gatt 연결된 Device의 GATT
+         * @param characteristic 연결된 Device와 공유하는 Characteristic
+         */
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             if(mBeforeWrite) {
@@ -307,7 +331,10 @@ public class BleManager {
     /**
      * GATT의 Characteristic의 값을 설정하여 데이터를 보내는 메소드
      *
-     * @param message 보내려는 문자열
+     * mSendingMessage : 보내려는 최종 문자열.
+     * message : 인자값으로 들어온 문자열, mSendingMessage가 있을 경우에는 mSendingMessage의 나머지 부분으로 덮어쓰여짐.
+     *
+     * @param message 보내려는 String 값
      */
     public void writeCharacteristic(String message) {
         if (!mConnected || !mInitialized) {
@@ -318,9 +345,6 @@ public class BleManager {
         if(mSendMessage.isEmpty()) {
             mSendMessage = message + "$";
         }
-
-//        BluetoothGattService service = mGatt.getService(SERVICE_UUID);
-//        BluetoothGattCharacteristic characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
 
         if(mSendMessage.length() > MAX_LENGTH) {
             message = mSendMessage.substring(0, MAX_LENGTH);
@@ -335,6 +359,11 @@ public class BleManager {
         Log.d(TAG, "writeCharacteristic: " + message + " >> " + mGatt.writeCharacteristic(characteristic));
     }
 
+    /**
+     * 스캔 결과 BluetoothDevice의 이름과 주소를 AlertDialog로 보여주는 메소드
+     *
+     * @param deviceList 스캔된 주변 BluetoothDevice 목록
+     */
     private void showScanResults(ArrayList<BluetoothDevice> deviceList) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
